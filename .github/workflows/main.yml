@@ -1,0 +1,47 @@
+name: Build and deploy ApiEmpresa to Azure
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore ApiEmpresa.csproj
+
+      - name: Compilar proyecto
+        run: dotnet build ApiEmpresa.csproj --configuration Release --no-restore
+
+      - name: Publicar proyecto
+        run: dotnet publish ApiEmpresa.csproj --configuration Release --no-build --output ./publish
+
+      - name: Iniciar sesion en Azure mediante OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Desplegar ApiEmpresa en Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'apiempresa-jlopez'
+          slot-name: 'Production'
+          package: './publish'
