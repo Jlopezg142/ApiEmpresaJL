@@ -55,11 +55,11 @@ var app = builder.Build();
 // SWAGGER
 // ======================================================
 
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
 
 // ======================================================
